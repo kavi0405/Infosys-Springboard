@@ -1,0 +1,64 @@
+---
+title: "Personal Activity Project"
+author: "Kavitha R"
+date: "2023-07-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r part1}
+# load the required packages
+library(caret); 
+library(rattle); 
+library(rpart); 
+library(rpart.plot)
+library(randomForest); 
+library(repmis)
+```
+
+```{r part2}
+# import the data 
+
+training <- read.csv("D:/Infosys/pml-training.csv", na.strings = c("NA", ""))
+testing <- read.csv("D:/Infosys/pml-testing.csv", na.strings = c("NA", ""))
+
+training <- training[, colSums(is.na(training)) == 0]
+testing <- testing[, colSums(is.na(testing)) == 0]
+
+trainData <- training[, -c(1:7)]
+testData <- testing[, -c(1:7)]
+```
+```{r part3}
+set.seed(7826) 
+inTrain <- createDataPartition(trainData$classe, p = 0.7, list = FALSE)
+train <- trainData[inTrain, ]
+valid <- trainData[-inTrain, ]
+
+control <- trainControl(method = "cv", number = 5)
+fit_rpart <- train(classe ~ ., data = train, method = "rpart", 
+                   trControl = control)
+print(fit_rpart, digits = 4)
+```
+```{r part4}
+fancyRpartPlot(fit_rpart$finalModel)
+
+predict_rpart <- predict(fit_rpart, valid)
+```
+```{r part5}
+# Show prediction result
+(conf_rpart <- confusionMatrix(as.factor(valid$classe), as.factor(predict_rpart)))
+
+(accuracy_rpart <- conf_rpart$overall[1])
+
+```
+
+
